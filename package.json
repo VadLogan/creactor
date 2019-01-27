@@ -1,0 +1,17 @@
+{
+  "name": "creactor",
+  "version": "1.0.0",
+  "description": "node-cli to delete packahe-lock.json",
+  "main": "cli.js",
+  "repository": "https://github.com/VadLogan/node-cli.git",
+  "author": "Vadim Palkin <palkinvadim@mail.ru>",
+  "license": "MIT",
+  "preferGlobal": true,
+  "scripts": {
+    "start": "node index.js"
+  },
+  "bin": "cli.js",
+  "dependencies": {
+    "lodash": "^4.17.11"
+  }
+}
