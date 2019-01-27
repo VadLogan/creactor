@@ -6,7 +6,7 @@ import PropTypes from 'prop-types';
 
 import "./styles.scss";
 
-const bc = '${Component.toLowerCase()}'
+const bc = '${kebabCase(Component)}'
 
 const ${Component} = (props) => {
     return <div className={bc}></div>
@@ -24,7 +24,7 @@ import PropTypes from 'prop-types';
 
 import "./styles.scss";
 
-const bc = '${Component}'
+const bc = '${kebabCase(Component)}'
 
 class ${Component} extends Component {
   static propTypes = {}
@@ -49,7 +49,7 @@ import PropTypes from 'prop-types';
 
 import "./styles.scss";
 
-const bc =' ${Component}'
+const bc =' ${kebabCase(Component)}'
 
 class ${Component} extends PureComponent {
   static propTypes = {}
