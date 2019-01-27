@@ -1,7 +1,7 @@
 {
   "name": "creactor",
   "version": "1.0.0",
-  "description": "node-cli to delete packahe-lock.json",
+  "description": "Creactor is cli-project which helps you to create architecture of you react-app fast and easy",
   "main": "cli.js",
   "repository": "https://github.com/VadLogan/node-cli.git",
   "author": "Vadim Palkin <palkinvadim@mail.ru>",
