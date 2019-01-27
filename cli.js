@@ -5,7 +5,7 @@
  */
 
 const fs = require("fs");
-const fsPromises = fs.promises;
+const util = require("util");
 const path = require("path");
 const {
   pureFunctional,
@@ -23,6 +23,8 @@ const {
 
 const [, , ...args] = process.argv;
 
+const DEFAULT_FOLDER = "src";
+
 /* main folders names */
 const APP_COMPONENTS_FOLDER = "components";
 const APP_CONTAINERS_FOLDER = "containers";
@@ -38,122 +40,102 @@ const isContainer = arg => arg === "-cr" || arg === "container";
 const isPage = arg => arg === "-p" || arg === "page";
 const isLetterBig = arg => /^[A-Z]/.test(arg);
 
+const appendFile = util.promisify(fs.appendFile);
+const mkDir = util.promisify(fs.mkdir);
+
 /*entity creators*/
-const createDir = folderName => {
-  fs.mkdir(
-    path.resolve(__dirname, `./${folderName}`),
-    { recursive: true },
-    err => {
-      if (err) throw err;
-    }
-  );
-};
+const createDir = folderName =>
+  mkDir(path.join(DEFAULT_FOLDER, folderName), {
+    recursive: true
+  });
 
 const createComponent = async arg => {
-  const componentsPath = `${APP_COMPONENTS_FOLDER}/${arg}`;
-  createDir(componentsPath);
+  const componentsPath = path.join(DEFAULT_FOLDER, APP_COMPONENTS_FOLDER, arg);
   try {
-    await fsPromises.appendFile(
+    await createDir(path.join(APP_COMPONENTS_FOLDER, arg));
+
+    await appendFile(
       `${componentsPath}/${arg}.${COMPONENT_FILE_EXTENSION}`,
       pureFunctional(arg)
     );
 
-    await fsPromises.appendFile(
+    await appendFile(
       `${componentsPath}/index.${EXECUTE_FILE_EXTENSION}`,
       componentIndex(arg)
     );
 
-    await fsPromises.appendFile(
+    await appendFile(
       `${componentsPath}/styles.${STYLES_FILE_EXTENSION}`,
       styles(arg)
     );
 
     console.log(`Component ${arg} was successfully created`);
   } catch (err) {
-    console.log(err);
+    console.log("createComponent", err);
   }
-
-  /* fs.writeFile(
-    `${componentsPath}/${arg}.${COMPONENT_FILE_EXTENSION}`,
-    pureFunctional(arg),
-    err => {
-      if (err) throw err;
-      fs.writeFile(
-        `${componentsPath}/index.${EXECUTE_FILE_EXTENSION}`,
-        componentIndex(arg),
-        err => {
-          if (err) throw err;
-          fs.writeFile(
-            `${componentsPath}/styles.${STYLES_FILE_EXTENSION}`,
-            styles(arg),
-            err => {
-              if (err) throw err;
-              console.log(`Component ${arg} was successfully created`);
-            }
-          );
-        }
-      );
-    }
-  );*/
 };
 
-const createContainer = async arg => {
-  const containersPath = `${APP_CONTAINERS_FOLDER}/${arg}`;
-  const sagasPath = `${containersPath}/sagas`;
-  createDir(containersPath);
-  createDir(sagasPath);
+const createEntity = async (arg, is = "container") => {
+  const execFolder =
+    is === "container" ? APP_CONTAINERS_FOLDER : APP_PAGES_FOLDER;
+  const containersPath = path.join(DEFAULT_FOLDER, execFolder, arg);
+  const sagasPath = path.join(containersPath, "/sagas");
+
   try {
-    await fsPromises.appendFile(
+    await createDir(path.join(execFolder, arg));
+    await createDir(path.join(execFolder, arg, "/sagas"));
+
+    await appendFile(
       `${containersPath}/${arg}.${COMPONENT_FILE_EXTENSION}`,
       reactNode(arg)
     );
 
-    await fsPromises.appendFile(
+    await appendFile(
       `${containersPath}/index.${EXECUTE_FILE_EXTENSION}`,
       containerIndex(arg)
     );
 
-    await fsPromises.appendFile(
+    await appendFile(
       `${containersPath}/actions.${EXECUTE_FILE_EXTENSION}`,
       createActions()
     );
 
-    await fsPromises.appendFile(
+    await appendFile(
       `${containersPath}/selectors.${EXECUTE_FILE_EXTENSION}`,
       createSelectors(arg)
     );
 
-    await fsPromises.appendFile(
+    await appendFile(
       `${containersPath}/reducer.${EXECUTE_FILE_EXTENSION}`,
       createReducer(arg)
     );
 
-    await fsPromises.appendFile(
+    await appendFile(
       `${sagasPath}/index.${EXECUTE_FILE_EXTENSION}`,
       createIndexSaga()
     );
 
-    await fsPromises.appendFile(
+    await appendFile(
       `${sagasPath}/saga${arg}.${EXECUTE_FILE_EXTENSION}`,
       createSaga()
     );
 
-    await fsPromises.appendFile(
+    await appendFile(
       `${containersPath}/styles.${STYLES_FILE_EXTENSION}`,
       styles(arg)
     );
 
     console.log(`Container ${arg} was successfully created`);
   } catch (error) {
-    console.error(error);
+    console.error("Container", error);
   }
 };
 
 /*line Executer*/
-const lineExecuter = (arr, ind, execFunc) => {
+const lineExecuter = (arr, ind, execFunc, option) => {
   for (let i = ind + 1; i < arr.length; i += 1) {
     if (isLetterBig(arr[i][0])) {
-      execFunc(arr[i]);
+      execFunc(arr[i], option);
     } else {
       break;
     }
@@ -163,15 +145,10 @@ const lineExecuter = (arr, ind, execFunc) => {
 /*process executer*/
 args.forEach((arg, ind) => {
   if (isComponent(arg)) {
-    createDir(APP_COMPONENTS_FOLDER);
     lineExecuter(args, ind, createComponent);
   } else if (isContainer(arg)) {
-    createDir(APP_CONTAINERS_FOLDER);
-    lineExecuter(args, ind, createContainer);
+    lineExecuter(args, ind, createEntity);
   } else if (isPage(arg)) {
-    createDir(APP_PAGES_FOLDER);
-    lineExecuter(args, ind, createContainer);
+    lineExecuter(args, ind, createEntity, "page");
   }
 });
-
-//fs.writeFileSync(`${arg}.js`, 'import React from "react"');

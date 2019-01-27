@@ -1,16 +1,16 @@
 {
   "name": "creactor",
-  "version": "1.0.0",
+  "version": "1.0.12",
   "description": "Creactor is cli-project which helps you to create architecture of you react-app fast and easy",
   "main": "cli.js",
   "repository": "https://github.com/VadLogan/creactor.git",
   "author": "Vadim Palkin <palkinvadim@mail.ru>",
   "license": "MIT",
   "preferGlobal": true,
-  "scripts": {
-    "start": "node index.js"
-  },
   "bin": "cli.js",
+  "styles": {
+    "start": "node cli.js"
+  },
   "dependencies": {
     "lodash": "^4.17.11"
   }
