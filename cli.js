@@ -35,9 +35,12 @@ const COMPONENT_FILE_EXTENSION = "jsx";
 const EXECUTE_FILE_EXTENSION = "js";
 const STYLES_FILE_EXTENSION = "scss";
 /*define entity functions*/
-const isComponent = arg => arg === "-c" || arg === "component";
-const isContainer = arg => arg === "-cr" || arg === "container";
-const isPage = arg => arg === "-p" || arg === "page";
+const createDefiner = (arg, alias, wholeDescription) =>
+  arg === alias || arg === wholeDescription;
+
+const isComponent = arg => createDefiner(arg, "-c", "component");
+const isContainer = arg => createDefiner(arg, "-cr", "container");
+const isPage = arg => createDefiner(arg, "-p", "page");
 const isLetterBig = arg => /^[A-Z]/.test(arg);
 
 const appendFile = util.promisify(fs.appendFile);
