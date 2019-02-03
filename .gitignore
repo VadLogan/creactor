@@ -5,8 +5,8 @@
 
 # testing
 /coverage
-
-
+/src
+creactor.config.json
 
 # misc
 .DS_Store

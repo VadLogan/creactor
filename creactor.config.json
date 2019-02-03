@@ -1,0 +1,10 @@
+{
+  "entryPoint": "src",
+  "componentFileExtension": "jsx",
+  "executeFileExtension": "js",
+  "styleFileExtension": "scss",
+  "appStylesPrefix": "your-app-uniq-prefix",
+  "appComponentsFolder": "components",
+  "appContainersFolder": "containers",
+  "appPagesFolder": "pages"
+}

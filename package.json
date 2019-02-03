@@ -9,8 +9,7 @@
   "preferGlobal": true,
   "bin": "cli.js",
   "styles": {
-    "start": "node cli.js",
-    "publish": "git push && npm publish"
+    "start": "node cli.js"
   },
   "dependencies": {
     "lodash": "^4.17.11"

@@ -1,55 +1,61 @@
 const kebabCase = require("lodash/kebabCase");
 
-const pureFunctional = Component => `
-import React from 'react';
-import PropTypes from 'prop-types';
+const withPrefix = (component, prefix) => {
+  const componentToKebab = kebabCase(component);
+  return prefix ? `.${prefix}-${componentToKebab}` : `.${componentToKebab}`;
+};
 
-import "./styles.scss";
-
-const bc = '${kebabCase(Component)}'
-
-const ${Component} = (props) => {
-    return <div className={bc}></div>
-}
-
-${Component}.displayName = '${Component}'
-${Component}.propTypes = {}
-
-export default ${Component}
-`;
-
-const reactNode = Component => `
-import { Component } from 'react';
-import PropTypes from 'prop-types';
-
-import "./styles.scss";
-
-const bc = '${kebabCase(Component)}'
-
-class ${Component} extends Component {
-  static propTypes = {}
-
-  static displayName = '${Component}'
-  state = {
-
-  };
-  render(){
-    return(
-      <div className={bc}></div>
-    )
+const pureFunctional = (Component, prefix) =>
+  Buffer.from(`
+  import React from 'react';
+  import PropTypes from 'prop-types';
+  
+  import "./styles.scss";
+  
+  const bc = '${withPrefix(Component, prefix)}'
+  
+  const ${Component} = (props) => {
+      return <div className={bc}></div>
   }
-}
-export default ${Component}
-`;
+  
+  ${Component}.displayName = '${Component}'
+  ${Component}.propTypes = {}
+  
+  export default ${Component}
+  `);
 
-const reactPureNode = Component => `
-import { PureComponent } from 'react';
+const reactNode = (Component, prefix) => `
+  import React, { Component } from 'react';
+  import PropTypes from 'prop-types';
+  
+  import "./styles.scss";
+  
+  const bc = '${withPrefix(Component, prefix)}'
+  
+  class ${Component} extends Component {
+    static propTypes = {}
+  
+    static displayName = '${Component}'
+    state = {
+  
+    };
+    render(){
+      return(
+        <div className={bc}></div>
+      )
+    }
+  }
+  export default ${Component}
+  `;
+
+const reactPureNode = (Component, prefix) => `
+import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 
 
 import "./styles.scss";
 
-const bc =' ${kebabCase(Component)}'
+const bc =' ${withPrefix(Component, prefix)}'
 
 class ${Component} extends PureComponent {
   static propTypes = {}
@@ -71,19 +77,15 @@ const styles = (component, prefix) => {
   if (!component) {
     throw new Error("please add component to styles function");
   }
-
-  const componentToKebab = kebabCase(component);
-  const mainComponentClassName = prefix
-    ? `.${prefix}_${componentToKebab}`
-    : `.${componentToKebab}`;
-  return mainComponentClassName + "{}";
+  return Buffer.from(withPrefix(component, prefix) + "{}");
 };
 
-const componentIndex = Component => `
+const componentIndex = Component =>
+  Buffer.from(`
 import ${Component} from "./${Component}"
 
 export default ${Component}
-`;
+`);
 
 const containerIndex = Component => `
 import ${Component} from "./${Component}";
