@@ -1,6 +1,5 @@
 const fs = require("fs");
-
-const DEFAULT_CREACTOR_CONFIG_FILE_NAME = "creactor.config.json";
+const { DEFAULT_CREACTOR_CONFIG_FILE_NAME } = require("./constants");
 
 module.exports = () => {
   const stream = fs.createReadStream(

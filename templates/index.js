@@ -1,37 +1,4 @@
-const kebabCase = require("lodash/kebabCase");
-
-const withPrefix = (component, prefix) => {
-  const componentToKebab = kebabCase(component);
-  return prefix ? `.${prefix}-${componentToKebab}` : `.${componentToKebab}`;
-};
-
-const markupAvailableComponents = [
-  "table",
-  "form",
-  "input",
-  "button",
-  "textarea",
-  "select",
-  "figure",
-  "h1",
-  "h2",
-  "h3",
-  "h4",
-  "h5",
-  "h6",
-  "p",
-  "ul",
-  "li",
-  "a",
-  "option",
-  "article"
-];
-
-const recognizeComponent = component => {
-  return markupAvailableComponents.some(tag => component.toLowerCase() === tag)
-    ? component.toLowerCase()
-    : "div";
-};
+const { withPrefix, recognizeComponent } = require("../utils");
 
 const pureFunctional = (Component, prefix) =>
   Buffer.from(`
@@ -191,6 +158,13 @@ const testDefaultFileName = arg => `
 import ${arg} from "../index"
 `;
 
+const subComponentsIndex = arr =>
+  arr.reduce(
+    (str, component) =>
+      str + `export {default as ${component}} from "./${component}"` + "\r\n",
+    ""
+  );
+
 module.exports = {
   pureFunctional,
   reactNode,
@@ -203,5 +177,6 @@ module.exports = {
   createReducer,
   createSaga,
   createIndexSaga,
-  testDefaultFileName
+  testDefaultFileName,
+  subComponentsIndex
 };

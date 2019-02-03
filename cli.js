@@ -20,14 +20,17 @@ const {
   createReducer,
   createSaga,
   createIndexSaga,
-  testDefaultFileName
+  testDefaultFileName,
+  subComponentsIndex
 } = require("./templates");
 const {
   isComponent,
   isContainer,
   isPage,
   isVersion,
-  isLetterBig
+  isLetterBig,
+  isPureComponent,
+  isSub
 } = require("./utils");
 const getConfig = require("./config");
 
@@ -44,19 +47,32 @@ const promAccess = path => {
   });
 };
 
-const PURE_COMPONENT = "-pr";
-const checksArray = [isComponent, isContainer, isPage, isVersion];
+const checkArray = checkElement =>
+  [isComponent, isContainer, isPage, isVersion, isSub].some(check =>
+    check(checkElement)
+  );
+
 /*line Executer*/
+const defineSubComponents = (arr, ind) => {
+  const newArray = [];
+  let i = ind;
+  while (!checkArray(arr[i]) && arr.length !== i - 1 && arr[i]) {
+    newArray.push(arr[i]);
+    i += 1;
+  }
+  return newArray;
+};
 const lineExecuter = (arr, ind, execFunc, option) => {
   for (let i = ind + 1; i < arr.length; i += 1) {
     if (isLetterBig(arr[i][0])) {
       execFunc(arr[i], {
         ...option,
         isPure:
-          arr[i + 1] === PURE_COMPONENT ||
-          (i !== ind + 1 && arr[i - 1] === PURE_COMPONENT)
+          isPureComponent(arr[i + 1]) ||
+          (i !== ind + 1 && isPureComponent(arr[i - 1])),
+        subComponents: isSub(arr[i + 1]) && defineSubComponents(arr, i + 2)
       });
-    } else if (checksArray.some(check => check(arr[i]))) {
+    } else if (checkArray(arr[i])) {
       break;
     }
   }
@@ -84,6 +100,11 @@ const isExistExec = async (path, componentName, fn) => {
   }
 };
 
+const createDir = folderName =>
+  mkDir(folderName, {
+    recursive: true
+  });
+
 /*process executer*/
 (async function executeProcess() {
   try {
@@ -99,21 +120,15 @@ const isExistExec = async (path, componentName, fn) => {
       APP_TEST_CONFIG
     } = await getConfig();
     /*entity creators*/
-    const createDir = folderName =>
-      mkDir(path.join(DEFAULT_FOLDER, folderName), {
-        recursive: true
-      });
 
-    const createComponent = async arg => {
-      const componentsPath = path.join(
-        DEFAULT_FOLDER,
-        APP_COMPONENTS_FOLDER,
-        arg
-      );
+    const createComponent = async (arg, subPath = "") => {
+      const componentsPath =
+        subPath || path.join(DEFAULT_FOLDER, APP_COMPONENTS_FOLDER, arg);
 
       isExistExec(componentsPath, arg, async () => {
         try {
-          await createDir(path.join(APP_COMPONENTS_FOLDER, arg));
+          await createDir(componentsPath);
+
           await appendFile(
             `${componentsPath}/${arg}.${COMPONENT_FILE_EXTENSION}`,
             pureFunctional(arg, APP_STYLES_PREFIX)
@@ -132,9 +147,7 @@ const isExistExec = async (path, componentName, fn) => {
           if (APP_TEST_CONFIG) {
             const { testFolderName, testFileName, coverage } = APP_TEST_CONFIG;
             if (coverage.includes(APP_COMPONENTS_FOLDER)) {
-              await createDir(
-                path.join(APP_COMPONENTS_FOLDER, arg, testFolderName)
-              );
+              await createDir(path.join(componentsPath, testFolderName));
 
               await appendFile(
                 path.join(
@@ -154,7 +167,10 @@ const isExistExec = async (path, componentName, fn) => {
       });
     };
 
-    const createEntity = async (arg, { is = "container", isPure }) => {
+    const createEntity = async (
+      arg,
+      { is = "container", isPure, subComponents = false }
+    ) => {
       const { execFolder, entityName } =
         is === "container"
           ? {
@@ -172,7 +188,7 @@ const isExistExec = async (path, componentName, fn) => {
         const sagasPath = path.join(containersPath, "/sagas");
 
         try {
-          await createDir(path.join(execFolder, arg));
+          await createDir(containersPath);
           if (isPure) {
             await appendFile(
               `${containersPath}/${arg}.${COMPONENT_FILE_EXTENSION}`,
@@ -183,7 +199,7 @@ const isExistExec = async (path, componentName, fn) => {
               componentIndex(arg)
             );
           } else {
-            await createDir(path.join(execFolder, arg, "/sagas"));
+            await createDir(path.join(containersPath, "/sagas"));
             await appendFile(
               `${containersPath}/${arg}.${COMPONENT_FILE_EXTENSION}`,
               reactNode(arg, APP_STYLES_PREFIX)
@@ -224,10 +240,30 @@ const isExistExec = async (path, componentName, fn) => {
             styles(arg, APP_STYLES_PREFIX)
           );
 
+          if (Array.isArray(subComponents)) {
+            await createDir(path.join(containersPath, "components"));
+
+            subComponents.forEach(component =>
+              createComponent(
+                component,
+                path.join(containersPath, "components", component)
+              )
+            );
+
+            await appendFile(
+              path.join(
+                containersPath,
+                "components",
+                `index.${EXECUTE_FILE_EXTENSION}`
+              ),
+              subComponentsIndex(subComponents)
+            );
+          }
+
           if (APP_TEST_CONFIG) {
             const { testFolderName, testFileName, coverage } = APP_TEST_CONFIG;
             if (coverage.includes(execFolder)) {
-              await createDir(path.join(execFolder, arg, testFolderName));
+              await createDir(path.join(containersPath, testFolderName));
 
               await appendFile(
                 path.join(
@@ -252,19 +288,22 @@ const isExistExec = async (path, componentName, fn) => {
       console.log(version);
     };
 
-    args.forEach((arg, ind) => {
-      if (isComponent(arg)) {
-        lineExecuter(args, ind, createComponent);
+    for (let i = 0; i < args.length; i += 1) {
+      const arg = args[i];
+      if (isSub(arg)) {
+        break;
+      } else if (isComponent(arg)) {
+        lineExecuter(args, i, createComponent);
       } else if (isContainer(arg)) {
-        lineExecuter(args, ind, createEntity);
+        lineExecuter(args, i, createEntity);
       } else if (isPage(arg)) {
-        lineExecuter(args, ind, createEntity, {
+        lineExecuter(args, i, createEntity, {
           is: "page"
         });
       } else if (isVersion(arg)) {
         getVersion();
       }
-    });
+    }
   } catch (err) {
     console.error(err);
   }
