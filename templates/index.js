@@ -5,6 +5,34 @@ const withPrefix = (component, prefix) => {
   return prefix ? `.${prefix}-${componentToKebab}` : `.${componentToKebab}`;
 };
 
+const markupAvailableComponents = [
+  "table",
+  "form",
+  "input",
+  "button",
+  "textarea",
+  "select",
+  "figure",
+  "h1",
+  "h2",
+  "h3",
+  "h4",
+  "h5",
+  "h6",
+  "p",
+  "ul",
+  "li",
+  "a",
+  "option",
+  "article"
+];
+
+const recognizeComponent = component => {
+  return markupAvailableComponents.some(tag => component.toLowerCase() === tag)
+    ? component.toLowerCase()
+    : "div";
+};
+
 const pureFunctional = (Component, prefix) =>
   Buffer.from(`
   import React from 'react';
@@ -15,7 +43,9 @@ const pureFunctional = (Component, prefix) =>
   const bc = '${withPrefix(Component, prefix)}'
   
   const ${Component} = (props) => {
-      return <div className={bc}></div>
+      return <${recognizeComponent(
+        Component
+      )} className={bc}></${recognizeComponent(Component)}>
   }
   
   ${Component}.displayName = '${Component}'
@@ -157,6 +187,10 @@ export default function* saga() {
 }
 `;
 
+const testDefaultFileName = arg => `
+import ${arg} from "../index"
+`;
+
 module.exports = {
   pureFunctional,
   reactNode,
@@ -168,5 +202,6 @@ module.exports = {
   createActions,
   createReducer,
   createSaga,
-  createIndexSaga
+  createIndexSaga,
+  testDefaultFileName
 };

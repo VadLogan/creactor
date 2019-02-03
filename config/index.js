@@ -18,7 +18,8 @@ module.exports = () => {
         COMPONENT_FILE_EXTENSION: config.componentFileExtension || "jsx",
         EXECUTE_FILE_EXTENSION: config.executeFileExtension || "js",
         STYLES_FILE_EXTENSION: config.styleFileExtension || "scss",
-        APP_STYLES_PREFIX: config.appStylesPrefix || false
+        APP_STYLES_PREFIX: config.appStylesPrefix || false,
+        APP_TEST_CONFIG: config.tests || false
       });
     });
 
@@ -34,7 +35,8 @@ module.exports = () => {
         COMPONENT_FILE_EXTENSION: "jsx",
         EXECUTE_FILE_EXTENSION: "js",
         STYLES_FILE_EXTENSION: "scss",
-        APP_STYLES_PREFIX: false
+        APP_STYLES_PREFIX: false,
+        APP_TEST_CONFIG: false
       });
     });
   });

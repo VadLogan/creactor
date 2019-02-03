@@ -6,5 +6,10 @@
   "appStylesPrefix": "your-app-uniq-prefix",
   "appComponentsFolder": "components",
   "appContainersFolder": "containers",
-  "appPagesFolder": "pages"
+  "appPagesFolder": "pages",
+  "tests": {
+    "testFolderName": "test",
+    "testFileName": "test.js",
+    "coverage": ["components", "containers", "pages"]
+  }
 }

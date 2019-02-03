@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-/**
+/*
  * Module dependencies.
  */
 
@@ -19,7 +19,8 @@ const {
   createActions,
   createReducer,
   createSaga,
-  createIndexSaga
+  createIndexSaga,
+  testDefaultFileName
 } = require("./templates");
 const {
   isComponent,
@@ -44,7 +45,7 @@ const promAccess = path => {
 };
 
 const PURE_COMPONENT = "-pr";
-
+const checksArray = [isComponent, isContainer, isPage, isVersion];
 /*line Executer*/
 const lineExecuter = (arr, ind, execFunc, option) => {
   for (let i = ind + 1; i < arr.length; i += 1) {
@@ -55,6 +56,8 @@ const lineExecuter = (arr, ind, execFunc, option) => {
           arr[i + 1] === PURE_COMPONENT ||
           (i !== ind + 1 && arr[i - 1] === PURE_COMPONENT)
       });
+    } else if (checksArray.some(check => check(arr[i]))) {
+      break;
     }
   }
 };
@@ -92,7 +95,8 @@ const isExistExec = async (path, componentName, fn) => {
       COMPONENT_FILE_EXTENSION,
       EXECUTE_FILE_EXTENSION,
       STYLES_FILE_EXTENSION,
-      APP_STYLES_PREFIX
+      APP_STYLES_PREFIX,
+      APP_TEST_CONFIG
     } = await getConfig();
     /*entity creators*/
     const createDir = folderName =>
@@ -124,6 +128,25 @@ const isExistExec = async (path, componentName, fn) => {
             `${componentsPath}/styles.${STYLES_FILE_EXTENSION}`,
             styles(arg, APP_STYLES_PREFIX)
           );
+
+          if (APP_TEST_CONFIG) {
+            const { testFolderName, testFileName, coverage } = APP_TEST_CONFIG;
+            if (coverage.includes(APP_COMPONENTS_FOLDER)) {
+              await createDir(
+                path.join(APP_COMPONENTS_FOLDER, arg, testFolderName)
+              );
+
+              await appendFile(
+                path.join(
+                  componentsPath,
+                  testFolderName,
+                  `${arg}.${testFileName}`
+                ),
+                testDefaultFileName(arg)
+              );
+            }
+          }
+
           console.log(`Component ${arg} was successfully created`);
         } catch (err) {
           console.log("createComponent", err);
@@ -200,6 +223,22 @@ const isExistExec = async (path, componentName, fn) => {
             `${containersPath}/styles.${STYLES_FILE_EXTENSION}`,
             styles(arg, APP_STYLES_PREFIX)
           );
+
+          if (APP_TEST_CONFIG) {
+            const { testFolderName, testFileName, coverage } = APP_TEST_CONFIG;
+            if (coverage.includes(execFolder)) {
+              await createDir(path.join(execFolder, arg, testFolderName));
+
+              await appendFile(
+                path.join(
+                  containersPath,
+                  testFolderName,
+                  `/${arg}.${testFileName}`
+                ),
+                testDefaultFileName(arg)
+              );
+            }
+          }
 
           console.log(`${entityName} ${arg} was successfully created`);
         } catch (error) {
