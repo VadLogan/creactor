@@ -74,7 +74,7 @@ const styles = (component, prefix) => {
   if (!component) {
     throw new Error("please add component to styles function");
   }
-  return Buffer.from(withPrefix(component, prefix) + "{}");
+  return Buffer.from(withPrefix(component, prefix, true) + "{}");
 };
 
 const componentIndex = Component =>

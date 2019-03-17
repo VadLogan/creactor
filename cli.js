@@ -33,6 +33,7 @@ const {
   isSub
 } = require("./utils");
 const getConfig = require("./config");
+const isEmpty = require("lodash/isEmpty");
 
 const [, , ...args] = process.argv;
 
@@ -65,13 +66,19 @@ const defineSubComponents = (arr, ind) => {
 const lineExecuter = (arr, ind, execFunc, option) => {
   for (let i = ind + 1; i < arr.length; i += 1) {
     if (isLetterBig(arr[i][0])) {
-      execFunc(arr[i], {
-        ...option,
-        isPure:
-          isPureComponent(arr[i + 1]) ||
-          (i !== ind + 1 && isPureComponent(arr[i - 1])),
-        subComponents: isSub(arr[i + 1]) && defineSubComponents(arr, i + 2)
-      });
+      execFunc(
+        arr[i],
+        isEmpty(option)
+          ? null
+          : {
+              ...option,
+              isPure:
+                isPureComponent(arr[i + 1]) ||
+                (i !== ind + 1 && isPureComponent(arr[i - 1])),
+              subComponents:
+                isSub(arr[i + 1]) && defineSubComponents(arr, i + 2)
+            }
+      );
     } else if (checkArray(arr[i])) {
       break;
     }
@@ -124,7 +131,6 @@ const createDir = folderName =>
     const createComponent = async (arg, subPath = "") => {
       const componentsPath =
         subPath || path.join(DEFAULT_FOLDER, APP_COMPONENTS_FOLDER, arg);
-
       isExistExec(componentsPath, arg, async () => {
         try {
           await createDir(componentsPath);

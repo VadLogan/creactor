@@ -13,9 +13,12 @@ const isSub = arg => createDefiner(arg, "-sub", "sub-components");
 const isVersion = arg => arg === "-v";
 const isLetterBig = arg => /^[A-Z]/.test(arg);
 
-const withPrefix = (component, prefix) => {
+const withPrefix = (component, prefix, useComa = false) => {
   const componentToKebab = kebabCase(component);
-  return prefix ? `.${prefix}-${componentToKebab}` : `.${componentToKebab}`;
+  const coma = useComa ? "." : "";
+  return prefix
+    ? `${coma}${prefix}-${componentToKebab}`
+    : `${coma}${componentToKebab}`;
 };
 
 const recognizeComponent = component => {
